@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ОСБ УМВД | Генератор протокола опроса</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #e0e5ec;
+            font-family: 'Segoe UI', 'Times New Roman', serif;
+            padding: 30px 20px;
+            position: relative;
+            min-height: 100vh;
+        }
+
+        .watermark {
+            position: fixed;
+            bottom: 15px;
+            right: 20px;
+            font-size: 12px;
+            color: rgba(255, 0, 0, 0.4);
+            font-family: 'Segoe UI', 'Times New Roman', serif;
+            font-style: italic;
+            pointer-events: none;
+            z-index: 1000;
+            background: rgba(255,255,255,0.5);
+            padding: 4px 12px;
+            border-radius: 20px;
+            backdrop-filter: blur(3px);
+        }
+
+        .app {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            overflow: hidden;
+        }
+
+        .header {
+            background: #0a2f44;
+            color: white;
+            padding: 18px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 500;
+            font-family: 'Times New Roman', serif;
+        }
+        .header h1 small {
+            font-size: 0.8rem;
+            opacity: 0.8;
+            display: block;
+        }
+        .badge {
+            background: #1e6f5c;
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .two-columns {
+            display: flex;
+            flex-wrap: wrap;
+        }
+        .form-panel {
+            flex: 1.2;
+            min-width: 300px;
+            background: #f4f7fc;
+            padding: 28px 24px;
+            border-right: 1px solid #cddae9;
+        }
+        .doc-panel {
+            flex: 2;
+            min-width: 500px;
+            padding: 28px 30px;
+            background: #ffffff;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+        label {
+            display: block;
+            font-weight: 700;
+            font-size: 0.8rem;
+            color: #0f3b4f;
+            margin-bottom: 5px;
+            letter-spacing: 0.3px;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #bcccd9;
+            border-radius: 12px;
+            font-family: 'Segoe UI', monospace;
+            font-size: 0.9rem;
+            background: white;
+            transition: 0.2s;
+        }
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #1f7faa;
+            box-shadow: 0 0 0 3px rgba(31,127,170,0.2);
+        }
+        textarea {
+            resize: vertical;
+            min-height: 70px;
+        }
+        .row-2 {
+            display: flex;
+            gap: 15px;
+        }
+        .row-2 .form-group {
+            flex: 1;
+        }
+        hr {
+            margin: 20px 0;
+            border: none;
+            height: 1px;
+            background: #cbdae6;
+        }
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        button {
+            border: none;
+            padding: 10px 18px;
+            border-radius: 40px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 0.85rem;
+            background: #e2e8f0;
+        }
+        .btn-primary {
+            background: #1e6f5c;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #0f5a49;
+        }
+        .btn-outline {
+            background: white;
+            border: 1px solid #8aa0b5;
+        }
+        .btn-bbcode {
+            background: #2c5f8a;
+            color: white;
+        }
+        .btn-bbcode:hover {
+            background: #1e4668;
+        }
+        .warning {
+            background: #fff3e0;
+            padding: 12px;
+            border-radius: 14px;
+            font-size: 0.7rem;
+            margin-top: 20px;
+            color: #a86800;
+        }
+
+        .protocol-document {
+            background: #fffef7;
+            border: 1px solid #c0cfdf;
+            border-radius: 16px;
+            padding: 28px 30px;
+            font-family: 'Times New Roman', 'Courier New', serif;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        .doc-text {
+            font-size: 14px;
+            line-height: 1.45;
+        }
+        .blue-field {
+            color: #2969b0;
+            font-style: italic;
+            font-weight: 500;
+        }
+        .action-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        @media (max-width: 900px) {
+            .two-columns {
+                flex-direction: column;
+            }
+            .form-panel {
+                border-right: none;
+                border-bottom: 1px solid #cddae9;
+            }
+        }
+        .copy-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+        }
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            margin-top: 8px;
+        }
+        .radio-group label {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: normal;
+            margin-bottom: 0;
+            cursor: pointer;
+        }
+        .radio-group input[type="radio"] {
+            width: auto;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="watermark">by Roma_Lebron</div>
+    <div class="app">
+        <div class="header">
+            <h1>⚡ ОСБ УМВД · Генератор протокола опроса <small>Отдел собственной безопасности</small></h1>
+            <div class="badge">BB-code для форума + чистый вид</div>
+        </div>
+        <div class="two-columns">
+            <div class="form-panel">
+                <h3 style="margin-bottom: 18px;">📝 Данные опроса</h3>
+                <div class="row-2">
+                    <div class="form-group">
+                        <label>📅 Число</label>
+                        <input type="text" id="dayNum" placeholder="" value="">
+                    </div>
+                    <div class="form-group">
+                        <label>📆 Месяц</label>
+                        <input type="text" id="monthName" placeholder="" value="">
+                    </div>
+                    <div class="form-group">
+                        <label>🗓️ Год</label>
+                        <input type="text" id="yearNum" placeholder="2026" value="2026">
+                    </div>
+                </div>
+                <div class="row-2">
+                    <div class="form-group">
+                        <label>⏱️ Начало (час)</label>
+                        <input type="text" id="startHour" placeholder="" value="">
+                    </div>
+                    <div class="form-group">
+                        <label>⏱️ Начало (мин)</label>
+                        <input type="text" id="startMin" placeholder="" value="">
+                    </div>
+                    <div class="form-group">
+                        <label>⏱️ Окончание (час)</label>
+                        <input type="text" id="endHour" placeholder="" value="">
+                    </div>
+                    <div class="form-group">
+                        <label>⏱️ Окончание (мин)</label>
+                        <input type="text" id="endMin" placeholder="" value="">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>🏢 Регион/область (для подстановки)</label>
+                    <input type="text" id="regionName" placeholder="по Нижегородской области" value="по Нижегородской области">
+                </div>
+                <div class="form-group">
+                    <label>👮 Должность сотрудника</label>
+                    <select id="officerPosition">
+                        <option value="Оперуполномоченный">Оперуполномоченный</option>
+                        <option value="Старший оперуполномоченный">Старший оперуполномоченный</option>
+                        <option value="Заместитель начальника ОСБ">Заместитель начальника ОСБ</option>
+                        <option value="Начальник ОСБ" selected>Начальник ОСБ</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>👮 Звание сотрудника</label>
+                    <select id="officerRank">
+                        <option value="">-- Выберите звание --</option>
+                        <option value="Старшина полиции">Старшина полиции</option>
+                        <option value="Прапорщик полиции">Прапорщик полиции</option>
+                        <option value="Младший лейтенант полиции">Младший лейтенант полиции</option>
+                        <option value="Лейтенант полиции">Лейтенант полиции</option>
+                        <option value="Капитан полиции">Капитан полиции</option>
+                        <option value="Майор полиции">Майор полиции</option>
+                        <option value="Подполковник полиции">Подполковник полиции</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>👮 ФИО сотрудника</label>
+                    <input type="text" id="officerFull" placeholder="" value="">
+                </div>
+                <hr>
+                <h4 style="margin-bottom: 12px;">👤 Опрашиваемый</h4>
+                <div class="form-group">
+                    <label>ФИО</label>
+                    <input type="text" id="personFio" placeholder="" value="">
+                </div>
+                <div class="form-group">
+                    <label>Должность</label>
+                    <input type="text" id="personPost" placeholder="" value="">
+                </div>
+                <div class="form-group">
+                    <label>Специальное звание опрашиваемого</label>
+                    <select id="personRank">
+                        <option value="">-- Выберите звание --</option>
+                        <option value="Рядовой полиции">Рядовой полиции</option>
+                        <option value="Младший сержант полиции">Младший сержант полиции</option>
+                        <option value="Сержант полиции">Сержант полиции</option>
+                        <option value="Старшина полиции">Старшина полиции</option>
+                        <option value="Прапорщик полиции">Прапорщик полиции</option>
+                        <option value="Младший лейтенант полиции">Младший лейтенант полиции</option>
+                        <option value="Лейтенант полиции">Лейтенант полиции</option>
+                        <option value="Капитан полиции">Капитан полиции</option>
+                        <option value="Майор полиции">Майор полиции</option>
+                        <option value="Подполковник полиции">Подполковник полиции</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Образование</label>
+                    <input type="text" id="personEducation" placeholder="Высшее юридическое" value="">
+                </div>
+                <div class="form-group">
+                    <label>Место проживания</label>
+                    <input type="text" id="personAddress" placeholder="Без Определенного места проживания" value="">
+                </div>
+                <div class="form-group">
+                    <label>Гражданство</label>
+                    <input type="text" id="personCitizen" placeholder="Российская Федерация" value="">
+                </div>
+                <div class="form-group">
+                    <label>📝 Текст пояснений (основная часть)</label>
+                    <textarea id="testimonyText" rows="3" placeholder="Я, ...сделал что-то."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>⚖️ Отношение к вине</label>
+                    <div class="radio-group">
+                        <label><input type="radio" name="guilt" value="признаю"> Вину признаю</label>
+                        <label><input type="radio" name="guilt" value="не признаю" checked> Вину не признаю</label>
+                    </div>
+                </div>
+                <div class="btn-group">
+                    <button class="btn-primary" id="generateBtn">📄 Сформировать протокол</button>
+                    <button class="btn-outline" id="resetFormBtn">🔄 Сбросить форму</button>
+                </div>
+                <div class="warning">
+                    ⚡ Данные НЕ сохраняются. После закрытия страницы всё очистится.<br>
+                    📋 Для форума используйте кнопку <strong>«📋 Копировать с BB-кодами»</strong>.
+                </div>
+            </div>
+
+            <div class="doc-panel">
+                <div class="copy-buttons">
+                    <button id="copyBbCodeBtn" class="btn-bbcode">📋 Копировать с BB-кодами (для форума)</button>
+                    <button id="copyPlainBtn" class="btn-outline">📄 Копировать чистый текст</button>
+                </div>
+                <div class="protocol-document" id="protocolContainer">
+                    <div class="doc-text" id="docContent">
+                        Заполните данные слева и нажмите «Сформировать протокол»
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const dayNum = document.getElementById('dayNum');
+        const monthName = document.getElementById('monthName');
+        const yearNum = document.getElementById('yearNum');
+        const startHour = document.getElementById('startHour');
+        const startMin = document.getElementById('startMin');
+        const endHour = document.getElementById('endHour');
+        const endMin = document.getElementById('endMin');
+        const regionName = document.getElementById('regionName');
+        const officerPosition = document.getElementById('officerPosition');
+        const officerRank = document.getElementById('officerRank');
+        const officerFull = document.getElementById('officerFull');
+        const personFio = document.getElementById('personFio');
+        const personPost = document.getElementById('personPost');
+        const personRank = document.getElementById('personRank');
+        const personEducation = document.getElementById('personEducation');
+        const personAddress = document.getElementById('personAddress');
+        const personCitizen = document.getElementById('personCitizen');
+        const testimonyText = document.getElementById('testimonyText');
+        const guiltRadios = document.querySelectorAll('input[name="guilt"]');
+
+        const generateBtn = document.getElementById('generateBtn');
+        const resetFormBtn = document.getElementById('resetFormBtn');
+        const copyBbCodeBtn = document.getElementById('copyBbCodeBtn');
+        const copyPlainBtn = document.getElementById('copyPlainBtn');
+        const docContentDiv = document.getElementById('docContent');
+
+        function getGuiltText() {
+            for (let radio of guiltRadios) {
+                if (radio.checked) return radio.value;
+            }
+            return "не признаю";
+        }
+
+        function blueText(text) {
+            if (!text) return '';
+            return `<span class="blue-field">${escapeHtml(text)}</span>`;
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        function generatePrettyHTML() {
+            const day = dayNum.value.trim() || "";
+            const month = monthName.value.trim() || "";
+            let year = yearNum.value.trim() || "2026";
+            year = year.replace(/^(\d{4}).*$/, '$1');
+            
+            const sHour = startHour.value.trim() || "";
+            const sMin = startMin.value.trim() || "";
+            const eHour = endHour.value.trim() || "";
+            const eMin = endMin.value.trim() || "";
+            const region = regionName.value.trim() || "по Нижегородской области";
+            const position = officerPosition.value;
+            const rank = officerRank.value || "";
+            const officer = officerFull.value.trim() || "";
+            const fio = personFio.value.trim() || "";
+            const post = personPost.value.trim() || "";
+            const personRankValue = personRank.value || "";
+            const edu = personEducation.value.trim() || "";
+            const addr = personAddress.value.trim() || "";
+            const citizen = personCitizen.value.trim() || "";
+            let testimony = testimonyText.value.trim() || "";
+            const guilt = getGuiltText();
+            
+            if (testimony) {
+                testimony = testimony + " Вину " + guilt + ".";
+            } else if (guilt) {
+                testimony = "Вину " + guilt + ".";
+            }
+
+            const fioShort = fio ? 
+                fio.split(' ')[0] + ' ' + (fio.split(' ')[1]?.charAt(0) || '') + '.' + (fio.split(' ')[2]?.charAt(0) || '') : 
+                "";
+
+            let positionWithRegion = position;
+            if (position === "Начальник ОСБ") positionWithRegion = "Начальник ОСБ";
+            else if (position === "Заместитель начальника ОСБ") positionWithRegion = "Заместитель начальника ОСБ";
+            else if (position === "Старший оперуполномоченный") positionWithRegion = "Старший оперуполномоченный ОСБ";
+            else positionWithRegion = position + " ОСБ";
+
+            const personFullInfo = post + (personRankValue ? (post ? ", " + personRankValue : personRankValue) : "");
+
+            const html = `
+<div style="text-align: center;">
+    <b><font face="Times New Roman">МИНИСТЕРСТВО ВНУТРЕННИХ ДЕЛ<br>
+    УПРАВЛЕНИЕ МИНИСТЕРСТВА ВНУТРЕННИХ ДЕЛ ПО НИЖЕГОРОДСКОЙ ОБЛАСТИ<br>
+    ОТДЕЛ СОБСТВЕННОЙ БЕЗОПАСНОСТИ</font></b><br><br>
+    <b><font face="Times New Roman">ПРОТОКОЛ<br>
+    опроса</font></b>
+</div>
+<br>
+<div>г. Южный &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; «${day}» ${month} ${year} г.</div>
+<br>
+<div>ㅤㅤㅤㅤОпрос начат в ${sHour} час. ${sMin} мин.<br>
+ㅤㅤㅤㅤОпрос окончен в ${eHour} час. ${eMin} мин.</div>
+<br>
+<div style="text-align: justify;">
+ㅤㅤㅤㅤㅤЯ, ${positionWithRegion} УМВД ${region} ${rank} ${officer}, руководствуясь ФКЗоВВ гл. 4 ст. 15 п. 2, провёл опрос:<br>
+1.ㅤФамилия, имя, отчество: ${blueText(fio)}<br>
+2.ㅤДолжность, специальное звание: ${blueText(personFullInfo)}<br>
+3.ㅤОбразование: ${blueText(edu)}<br>
+4.ㅤМесто проживания: ${blueText(addr)}<br>
+5.ㅤГражданство: ${blueText(citizen)}<br><br>
+
+ㅤㅤㅤㅤПодписавшись ниже гражданин подтверждает, что владеет русским языком в полной мере, читать и писать на русском языке умеет, в услугах переводчика не нуждается, желает отвечать на вопросы на русском языке, подтверждает достоверность заполненных с его данных в пп. 1 - 5 настоящего протокола, подтверждает то, что ему разъяснено о том, что в соответствии со ст. 17 Конституции Нижегородской области никто не обязан свидетельствовать против себя самого, своего супруга и близких родственников, подтверждает ознакомление с уголовной ответственностью за заведомо ложный донос по ст. 61 УК, подтверждает ознакомление с дисциплинарной ответственностью за ложь при прохождении опроса по п. 3.3 внутреннего устава органов внутренних дел.<br>
+<div align="right">${fioShort}<br> <span style="font-size:12px;">(подпись)</span></div>
+
+ㅤㅤㅤㅤПо существу поставленных вопросов могу пояснить следующее:<br>
+${blueText('ㅤㅤㅤㅤ' + testimony)}<br><br>
+
+ㅤㅤㅤㅤПодписавшись ниже гражданин подтверждает, что ответы на вопросы с его слов записаны верно, подтверждает, что дополнений к написанному не имеет.<br>
+<div align="right">${fioShort}<br> <span style="font-size:12px;">(подпись)</span></div>
+
+<br><br>
+<b>ОПРОС ПРОИЗВЕЛ, ПРОТОКОЛ СОСТАВИЛ:</b><br>
+${positionWithRegion} УМВД<br>
+${region}<br>
+${rank}<br>
+<div align="right">${officer}</div>
+</div>
+            `;
+            docContentDiv.innerHTML = html;
+        }
+
+        // Функция генерации BB-кода
+        function generateBBCode() {
+            const day = dayNum.value.trim() || "";
+            const month = monthName.value.trim() || "";
+            let year = yearNum.value.trim() || "2026";
+            year = year.replace(/^(\d{4}).*$/, '$1');
+            const yearLastTwo = year.slice(-2);
+            const yearFirstTwo = year.slice(0, -2);
+            
+            const sHour = startHour.value.trim() || "";
+            const sMin = startMin.value.trim() || "";
+            const eHour = endHour.value.trim() || "";
+            const eMin = endMin.value.trim() || "";
+            const region = regionName.value.trim() || "по Нижегородской области";
+            const position = officerPosition.value;
+            const rank = officerRank.value || "";
+            const officer = officerFull.value.trim() || "";
+            const fio = personFio.value.trim() || "";
+            const post = personPost.value.trim() || "";
+            const personRankValue = personRank.value || "";
+            const edu = personEducation.value.trim() || "";
+            const addr = personAddress.value.trim() || "";
+            const citizen = personCitizen.value.trim() || "";
+            let testimony = testimonyText.value.trim() || "";
+            const guilt = getGuiltText();
+            
+            if (testimony) {
+                testimony = testimony + " Вину " + guilt + ".";
+            } else if (guilt) {
+                testimony = "Вину " + guilt + ".";
+            }
+
+            const fioShort = fio ? 
+                fio.split(' ')[0] + ' ' + (fio.split(' ')[1]?.charAt(0) || '') + '.' + (fio.split(' ')[2]?.charAt(0) || '') : 
+                "";
+
+            let positionWithRegion = position;
+            if (position === "Начальник ОСБ") positionWithRegion = "Начальник ОСБ";
+            else if (position === "Заместитель начальника ОСБ") positionWithRegion = "Заместитель начальника ОСБ";
+            else if (position === "Старший оперуполномоченный") positionWithRegion = "Старший оперуполномоченный ОСБ";
+            else positionWithRegion = position + " ОСБ";
+
+            const personFullInfo = post + (personRankValue ? (post ? ", " + personRankValue : personRankValue) : "");
+
+            // Цвет для полей (синий)
+            const fieldColor = "[COLOR=rgb(41, 105, 176)]";
+            const colorClose = "[/COLOR]";
+            
+            const coloredDay = day ? `${fieldColor}${day}${colorClose}` : '';
+            const coloredYearEnd = yearLastTwo ? `${fieldColor}${yearLastTwo}${colorClose}` : '';
+            const dateString = `«${coloredDay}» ${month} ${yearFirstTwo}${coloredYearEnd} г.`;
+
+            // Формируем строки времени: только цифры цветные, слова "час" и "мин" без цвета
+            const coloredStartTime = sHour ? `${fieldColor}${sHour}${colorClose} час. ${fieldColor}${sMin}${colorClose} мин.` : '';
+            const coloredEndTime = eHour ? `${fieldColor}${eHour}${colorClose} час. ${fieldColor}${eMin}${colorClose} мин.` : '';
+
+            return `[TABLE]
+[TR]
+[TD][CENTER][B][FONT=Times New Roman]МИНИСТЕРСТВО ВНУТРЕННИХ ДЕЛ
+УПРАВЛЕНИЕ МИНИСТЕРСТВА ВНУТРЕННИХ ДЕЛ ПО НИЖЕГОРОДСКОЙ ОБЛАСТИ
+ ОТДЕЛ СОБСТВЕННОЙ БЕЗОПАСНОСТИ[/FONT][/B][FONT=Times New Roman]
+ 
+[B]ПРОТОКОЛ[/B]
+ опроса[/FONT][/CENTER]
+[TABLE=noborder]
+[TR]
+[TD][FONT=Times New Roman]г. Южный[/FONT][/TD]
+[TD][RIGHT][FONT=Times New Roman]${dateString}[/FONT][/RIGHT][/TD]
+[/TR]
+[/TABLE]
+[TABLE=noborder]
+[TR]
+[TD][FONT=Times New Roman]ㅤㅤㅤㅤОпрос начат в ${coloredStartTime}
+ㅤㅤㅤㅤОпрос окончен в ${coloredEndTime}[/FONT]
+
+[JUSTIFY][FONT=Times New Roman]ㅤㅤㅤㅤㅤЯ, ${positionWithRegion} УМВД ${region} ${rank} ${officer}, руководствуясь ФКЗоВВ гл. 4 ст. 15 п. 2, провёл опрос:
+1.ㅤФамилия, имя, отчество: ${fieldColor}${fio}${colorClose}
+2.ㅤДолжность, специальное звание: ${fieldColor}${personFullInfo}${colorClose}
+3.ㅤОбразование: ${fieldColor}${edu}${colorClose}
+4.ㅤМесто проживания: ${fieldColor}${addr}${colorClose}
+5.ㅤГражданство: ${fieldColor}${citizen}${colorClose}
+ 
+ ㅤㅤㅤㅤПодписавшись ниже гражданин подтверждает, что владеет русским языком в полной мере, читать и писать на русском языке умеет, в услугах переводчика не нуждается, желает отвечать на вопросы на русском языке, подтверждает достоверность заполненных с его данных в пп. 1 - 5 настоящего протокола, подтверждает то, что ему разъяснено о том, что в соответствии со ст. 17 Конституции Нижегородской области никто не обязан свидетельствовать против себя самого, своего супруга и близких родственников, подтверждает ознакомление с уголовной ответственностью за заведомо ложный донос по ст. 61 УК, подтверждает ознакомление с дисциплинарной ответственностью за ложь при прохождении опроса по п. 3.3 внутреннего устава органов внутренних дел.[/FONT][/JUSTIFY]
+[RIGHT][FONT=Times New Roman]${fioShort}[/FONT][/RIGHT]
+[JUSTIFY][FONT=Times New Roman]
+ ㅤㅤㅤㅤПо существу поставленных вопросов могу пояснить следующее:
+[I]ㅤㅤㅤㅤ${fieldColor}${testimony}${colorClose}[/I]
+ 
+ ㅤㅤㅤㅤПодписавшись ниже гражданин подтверждает, что ответы на вопросы с его слов записаны верно, подтверждает, что дополнений к написанному не имеет.[/FONT][/JUSTIFY]
+[RIGHT][FONT=Times New Roman]${fioShort}[/FONT][/RIGHT][/TD]
+[/TR]
+[/TABLE]
+[TABLE=noborder]
+[TR]
+[TD][B]ОПРОС ПРОИЗВЕЛ, ПРОТОКОЛ СОСТАВИЛ:[/B]
+${positionWithRegion} УМВД
+${region}
+${rank}[/TD]
+[TD][/TD]
+[TD][RIGHT]${officer}[/RIGHT][/TD]
+[/TR]
+[/TABLE][/TD]
+[/TR]
+[/TABLE]`;
+        }
+
+        function resetFormClean() {
+            dayNum.value = '';
+            monthName.value = '';
+            yearNum.value = '2026';
+            startHour.value = '';
+            startMin.value = '';
+            endHour.value = '';
+            endMin.value = '';
+            regionName.value = 'по Нижегородской области';
+            officerPosition.value = 'Начальник ОСБ';
+            officerRank.value = '';
+            officerFull.value = '';
+            personFio.value = '';
+            personPost.value = '';
+            personRank.value = '';
+            personEducation.value = '';
+            personAddress.value = '';
+            personCitizen.value = '';
+            testimonyText.value = '';
+            for (let radio of guiltRadios) {
+                if (radio.value === 'не признаю') radio.checked = true;
+            }
+            generatePrettyHTML();
+        }
+
+        function copyBBCodeToClipboard() {
+            const bbcode = generateBBCode();
+            navigator.clipboard.writeText(bbcode).then(() => {
+                alert('✅ BB-код скопирован! Теперь его можно вставить на форум.');
+            }).catch(() => alert('Ошибка копирования.'));
+        }
+
+        function copyPlainText() {
+            const plainText = docContentDiv.innerText;
+            if (!plainText || plainText.includes('Заполните данные')) {
+                alert('Нет сформированного документа. Сначала нажмите «Сформировать протокол».');
+                return;
+            }
+            navigator.clipboard.writeText(plainText).then(() => {
+                alert('✅ Чистый текст скопирован (для Word/блокнота).');
+            }).catch(() => alert('Ошибка копирования.'));
+        }
+
+        generateBtn.addEventListener('click', generatePrettyHTML);
+        resetFormBtn.addEventListener('click', resetFormClean);
+        copyBbCodeBtn.addEventListener('click', copyBBCodeToClipboard);
+        copyPlainBtn.addEventListener('click', copyPlainText);
+        
+        resetFormClean();
+    </script>
+</body>
+</html>
